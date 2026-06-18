@@ -14,7 +14,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy source code and data files
 COPY backend/app ./backend/app
 COPY frontend ./frontend
-COPY "GHG Sheet .xlsx" .
+COPY ["GHG Sheet .xlsx", "."]
 
 # Expose port 8000
 EXPOSE 8000
