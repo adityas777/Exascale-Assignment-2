@@ -1,6 +1,9 @@
 import os
 from datetime import date, datetime, timedelta
 from typing import List, Optional
+
+timedelta_one_day = timedelta(days=1)
+
 from fastapi import FastAPI, Depends, HTTPException, Query, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -23,10 +26,18 @@ from .models import (
     EmissionFactorResponse
 )
 
+from contextlib import asynccontextmanager
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    init_db()
+    yield
+
 app = FastAPI(
     title="Carbon Emissions Reporting Platform API",
     description="Backend API for Exascale GHG Emissions Reporting Platform Prototype",
-    version="1.0.0"
+    version="1.0.0",
+    lifespan=lifespan
 )
 
 # Enable CORS for development
@@ -37,11 +48,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Ensure DB tables are initialized
-@app.on_event("startup")
-def startup_event():
-    init_db()
 
 # --- API Endpoints ---
 
@@ -71,10 +77,7 @@ def create_emission_record(record_in: EmissionRecordCreate, db: Session = Depend
             detail=f"No valid emission factor found for activity '{record_in.activity_type}' on date {record_in.date}."
         )
 
-    # 2. Check if unit matches
-    # (If the input unit differs from the master data, we still calculate based on factor, but it's best to log/match it)
-    
-    # 3. Calculate emissions: Activity Data * Factor (in kgCO2e)
+    # 2. Calculate emissions: Activity Data * Factor (in kgCO2e)
     calculated_emissions = record_in.activity_data * factor.co2e_factor
 
     # 4. Create record
@@ -256,8 +259,7 @@ def get_emission_intensity(
             end_dt = date(year, 12, 31)
         else:
             end_dt = date(year, m + 1, 1) - timedelta_one_day
-            # wait, timedelta_one_day is defined as timedelta(days=1)
-        
+
         # Calculate monthly emissions (Scope 1 + Scope 2)
         records = db.query(EmissionRecord).filter(
             EmissionRecord.date >= start_dt,
@@ -319,9 +321,6 @@ def get_emission_intensity(
         },
         "monthly_breakdown": monthly_data
     }
-
-# Helper variable for timedelta calculation
-timedelta_one_day = timedelta(days=1)
 
 
 # C. Emission Hotspot API
@@ -422,8 +421,6 @@ def get_monthly_trend(
 
 
 # Serve Frontend
-# Wait! Let's ensure the frontend directory exists and contains our files
-# We will mount the static directory for CSS/JS, and serve index.html for root.
 FRONTEND_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "frontend")
 if os.path.exists(FRONTEND_DIR):
     app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
