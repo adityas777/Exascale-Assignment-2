@@ -86,7 +86,7 @@ erDiagram
 
 1. **Clone & Navigate** into the workspace directory:
    ```bash
-   cd "c:\Users\pglap\OneDrive\Desktop\ASSIGN 2"
+   cd Exascale-Assignment-2
    ```
 
 2. **Install Dependencies**:
