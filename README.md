@@ -3,7 +3,7 @@
 This repository contains a containerized prototype of an end-to-end Greenhouse Gas (GHG) Emissions Reporting Platform. The system supports tracking and visual reporting of **Scope 1 (Direct)**, **Scope 2 (Indirect)**, and **Scope 3 (Value Chain)** emissions in accordance with the international GHG Protocol standard.
 
 ---
-# Deployes Link : https://exacarbon-platform.onrender.com/
+# Deployed Link : https://exacarbon-platform.onrender.com/
 
 ## 🏗️ Architecture & Technology Stack
 
