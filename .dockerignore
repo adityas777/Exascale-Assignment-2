@@ -1,0 +1,13 @@
+venv/
+.git/
+.gitignore
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.db
+*.log
+inspect_results.txt
+inspect_scope1_results.txt
+*.py
+verify.py

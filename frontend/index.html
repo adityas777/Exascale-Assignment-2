@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exascale Carbon Reporting Platform</title>
+    <!-- Modern Premium Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="logo-area">
+                <span class="logo-icon">🌿</span>
+                <h2>ExaCarbon</h2>
+            </div>
+            <nav class="nav-links">
+                <a href="#dashboard" class="nav-link active" data-tab="dashboard-tab">
+                    <span class="icon">📊</span> Dashboard
+                </a>
+                <a href="#data-input" class="nav-link" data-tab="input-tab">
+                    <span class="icon">📝</span> Record Entry
+                </a>
+                <a href="#records-table" class="nav-link" data-tab="explorer-tab">
+                    <span class="icon">🔍</span> Data Explorer
+                </a>
+                <a href="#audit-log" class="nav-link" data-tab="audit-tab">
+                    <span class="icon">🛡️</span> Audit Trail
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="status-indicator">
+                    <span class="dot pulse-green"></span>
+                    <span class="status-text">Production Database connected</span>
+                </div>
+                <div class="version">v1.0 (Prototype)</div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Top bar -->
+            <header class="top-bar">
+                <div class="page-title">
+                    <h1 id="tab-title-text">GHG Emissions Dashboard</h1>
+                    <p class="subtitle" id="tab-subtitle-text">Real-time Scope 1 & 2 sustainability metrics</p>
+                </div>
+                <div class="controls">
+                    <label for="year-selector" class="selector-label">Reporting Year:</label>
+                    <select id="year-selector" class="custom-select">
+                        <option value="2025">2025</option>
+                        <option value="2024" selected>2024</option>
+                        <option value="2023">2023</option>
+                    </select>
+                </div>
+            </header>
+
+            <!-- TAB 1: DASHBOARD -->
+            <section id="dashboard-tab" class="tab-content active">
+                <!-- KPI Dashboard Grid -->
+                <div class="kpi-grid">
+                    <!-- Card 1: Total Footprint -->
+                    <div class="kpi-card">
+                        <div class="kpi-header">
+                            <span class="kpi-title">Total GHG Footprint</span>
+                            <span class="kpi-icon icon-co2">☁️</span>
+                        </div>
+                        <div class="kpi-value" id="kpi-total-footprint">- tCO₂e</div>
+                        <div class="kpi-subtext" id="kpi-footprint-meta">Scope 1 & 2 combined</div>
+                    </div>
+                    <!-- Card 2: YoY Change -->
+                    <div class="kpi-card">
+                        <div class="kpi-header">
+                            <span class="kpi-title">YoY Trend</span>
+                            <span class="kpi-icon icon-trend" id="kpi-trend-icon">📈</span>
+                        </div>
+                        <div class="kpi-value" id="kpi-yoy-value">- %</div>
+                        <div class="kpi-subtext" id="kpi-yoy-meta">vs. previous year</div>
+                    </div>
+                    <!-- Card 3: Intensity Metric -->
+                    <div class="kpi-card">
+                        <div class="kpi-header">
+                            <span class="kpi-title">Emissions Intensity</span>
+                            <span class="kpi-icon icon-intensity">⚡</span>
+                        </div>
+                        <div class="kpi-value" id="kpi-intensity-value">-</div>
+                        <div class="kpi-subtext" id="kpi-intensity-meta">kgCO₂e / Ton of Steel</div>
+                    </div>
+                    <!-- Card 4: Active Overrides -->
+                    <div class="kpi-card">
+                        <div class="kpi-header">
+                            <span class="kpi-title">Audit Adjustments</span>
+                            <span class="kpi-icon icon-audit">🔑</span>
+                        </div>
+                        <div class="kpi-value" id="kpi-overrides-value">0</div>
+                        <div class="kpi-subtext">Manual overrides recorded</div>
+                    </div>
+                </div>
+
+                <!-- Visualization Charts Grid -->
+                <div class="charts-grid">
+                    <!-- Chart 1: Stacked YoY Bar Chart -->
+                    <div class="chart-card span-2">
+                        <div class="chart-header">
+                            <h3>Year-over-Year Scope Comparison</h3>
+                            <p class="chart-desc">Detailed annual comparison for Scope 1 vs. Scope 2 emissions</p>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="yoyChart"></canvas>
+                        </div>
+                    </div>
+                    <!-- Chart 2: Source Hotspot Donut Chart -->
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3>Emissions Hotspots</h3>
+                            <p class="chart-desc">Percentage breakdown by active emissions source</p>
+                        </div>
+                        <div class="chart-container donut-container">
+                            <canvas id="hotspotChart"></canvas>
+                        </div>
+                    </div>
+                    <!-- Chart 3: Monthly Trend Line Chart -->
+                    <div class="chart-card span-3">
+                        <div class="chart-header">
+                            <h3>Emissions Monthly Trend</h3>
+                            <p class="chart-desc">Monthly progression of Scope 1, Scope 2, and Scope 3 emissions</p>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="trendChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 2: RECORD ENTRY -->
+            <section id="input-tab" class="tab-content">
+                <div class="forms-wrapper">
+                    <!-- Form 1: Scope 1 & 2 Record Entry -->
+                    <div class="form-card">
+                        <div class="form-header">
+                            <h2>Submit Activity Record</h2>
+                            <p>Enter Scope 1 or 2 activity logs to automatically calculate GHG emissions based on versioned historical factors.</p>
+                        </div>
+                        <form id="record-form">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="form-activity-type">Activity Type / Material:</label>
+                                    <select id="form-activity-type" class="custom-select" required>
+                                        <option value="" disabled selected>Select activity type...</option>
+                                        <!-- Will be dynamically populated from factors -->
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="form-date">Activity Date:</label>
+                                    <input type="date" id="form-date" required>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="form-quantity">Quantity:</label>
+                                    <input type="number" step="any" id="form-quantity" placeholder="e.g. 15000" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="form-unit">Unit:</label>
+                                    <input type="text" id="form-unit" placeholder="e.g. tonnes, kWh" readonly class="readonly-input">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="form-location">Plant / Location:</label>
+                                    <input type="text" id="form-location" placeholder="e.g. Central Steel Plant" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="form-section">Process Section:</label>
+                                    <input type="text" id="form-section" placeholder="e.g. Blast Furnace, Pellet Plant" required>
+                                </div>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">
+                                    <span class="btn-icon">⚡</span> Calculate & Save Record
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Form 2: Business Metric Entry -->
+                    <div class="form-card">
+                        <div class="form-header">
+                            <h2>Submit Business Metric</h2>
+                            <p>Record company operational metrics (e.g. production totals, headcount) to compute updated ESG emission intensity ratios.</p>
+                        </div>
+                        <form id="metric-form">
+                            <div class="form-group">
+                                <label for="form-metric-name">Metric Name:</label>
+                                <select id="form-metric-name" class="custom-select" required>
+                                    <option value="Tons of Steel Produced" selected>Tons of Steel Produced</option>
+                                    <option value="Employees">Employees</option>
+                                </select>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="form-metric-date">Reporting Date:</label>
+                                    <input type="date" id="form-metric-date" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="form-metric-value">Metric Value:</label>
+                                    <input type="number" step="any" id="form-metric-value" placeholder="e.g. 52000" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="form-metric-unit">Unit of Metric:</label>
+                                <input type="text" id="form-metric-unit" value="tonnes" readonly class="readonly-input">
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-secondary">
+                                    <span class="btn-icon">📈</span> Record Metric
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 3: DATA EXPLORER -->
+            <section id="explorer-tab" class="tab-content">
+                <div class="table-card">
+                    <div class="table-header">
+                        <div>
+                            <h2>Emissions Record Registry</h2>
+                            <p>Audit trail of all recorded activities, calculated results, and applied manual overrides.</p>
+                        </div>
+                        <div class="table-filters">
+                            <select id="filter-scope" class="custom-select table-filter-select">
+                                <option value="">All Scopes</option>
+                                <option value="1">Scope 1 (Direct)</option>
+                                <option value="2">Scope 2 (Indirect)</option>
+                                <option value="3">Scope 3 (Value Chain)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table id="records-grid-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Date</th>
+                                    <th>Scope</th>
+                                    <th>Activity / Material</th>
+                                    <th>Activity Data</th>
+                                    <th>Calculated (kgCO₂e)</th>
+                                    <th>Override (kgCO₂e)</th>
+                                    <th>Final Emissions</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="records-table-body">
+                                <tr>
+                                    <td colspan="10" class="empty-state">Loading registry records...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 4: AUDIT LOG -->
+            <section id="audit-tab" class="tab-content">
+                <div class="table-card">
+                    <div class="table-header">
+                        <div>
+                            <h2>Override Audit Log</h2>
+                            <p>Immutable log of manual value adjustments made by system administrators for regulatory compliance.</p>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Audit ID</th>
+                                    <th>Record ID</th>
+                                    <th>Changed By</th>
+                                    <th>Previous Value (kgCO₂e)</th>
+                                    <th>New Overridden (kgCO₂e)</th>
+                                    <th>Justification</th>
+                                    <th>Change Timestamp</th>
+                                </tr>
+                            </thead>
+                            <tbody id="audit-table-body">
+                                <tr>
+                                    <td colspan="7" class="empty-state">Loading audit trail logs...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- OVERLAY MODAL FOR MANUAL OVERRIDES -->
+    <div id="override-modal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2>Manual Emission Override</h2>
+                <button type="button" class="modal-close-btn" id="modal-close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="record-summary-box">
+                    <p><strong>Record ID:</strong> <span id="override-record-id">-</span></p>
+                    <p><strong>Activity:</strong> <span id="override-activity">-</span></p>
+                    <p><strong>Original Calculated Value:</strong> <span id="override-original-val">-</span> kgCO₂e</p>
+                </div>
+                <form id="override-form">
+                    <div class="form-group">
+                        <label for="override-emissions-input">New Emission Value (kgCO₂e):</label>
+                        <input type="number" step="any" id="override-emissions-input" required placeholder="Enter overridden emissions in kg">
+                    </div>
+                    <div class="form-group">
+                        <label for="override-justification-input">Justification for Manual Adjustment:</label>
+                        <textarea id="override-justification-input" rows="4" required placeholder="Explain why the calculated value is being adjusted (min. 5 characters)..."></textarea>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-muted" id="modal-cancel-btn">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Override Adjustments</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ALERT TOASTS CONTAINER -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>

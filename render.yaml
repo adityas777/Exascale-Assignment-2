@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: exacarbon-platform
+    env: docker
+    plan: free
+    region: oregon
+    envVars:
+      - key: PORT
+        value: 8000
+      - key: PYTHONUNBUFFERED
+        value: 1
+    disk:
+      name: emissions-db-data
+      mountPath: /app/backend/data
+      sizeGB: 1
+    # Note: Using SQLite requires a persistent disk on Render if we want overrides to survive restarts.
+    # However, for a prototype, running SQLite directly in the container is fine (it resets to default seeded data on restart, which is often preferred for demo purposes).
+    # If persistent overrides are needed, the disk volume mounts to where the DB is stored.
+    # Currently, the DB is at /app/backend/emissions.db. Let's make sure the path is configurable or standard.
